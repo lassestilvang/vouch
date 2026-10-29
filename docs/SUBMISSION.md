@@ -1,6 +1,13 @@
 # Devpost submission kit
 
-Paste-ready text for the Devpost form, plus the demo video script. Numbers come from live runs on 2026-10-29. The only placeholder left is **[host]**.
+Paste-ready text for the Devpost form, plus the demo video script. Numbers come from live runs on 2026-10-29.
+
+## Links for the form
+
+- Working demo: https://vouch-phi-one.vercel.app
+- Code: https://github.com/lassestilvang/vouch (MIT)
+- Pitch deck: https://vouch-phi-one.vercel.app/pitch
+- Video: upload `.demo/vouch-demo.mp4` to YouTube as **Public**, then paste the link here
 
 ## Track
 
@@ -83,7 +90,7 @@ NVIDIA Nemotron 3 (Nano, Super, Ultra), Nebius Token Factory, Tavily, Next.js, T
 | 1:50–2:00 | Vet `lodahs` | "A typosquat that npm already pulled. Caught by the facts layer, no LLM needed." |
 | 2:00–2:20 | Scan a manifest: the sample package.json | "Or paste a whole package.json. Nano screens every dependency in a few seconds, and the risky ones float to the top. Deep dive sends just those to Ultra." |
 | 2:20–2:35 | Zoom in on the model routing panel | "Here's the routing on Token Factory: five Nano calls, one Super, one Ultra. Most tokens go to the cheapest model." |
-| 2:35–3:00 | README architecture, repo URL | "Open source under MIT, deployed on [host]. Vouch: know what you install." |
+| 2:35–3:00 | README architecture, repo URL | "Open source under MIT, live at vouch-phi-one.vercel.app. Vouch: know what you install." |
 
 ## Token Factory and NVIDIA feedback (for the feedback field and the $100 feedback prize)
 

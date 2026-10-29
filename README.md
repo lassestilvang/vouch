@@ -6,6 +6,8 @@ It runs on **NVIDIA Nemotron 3 models served by Nebius Token Factory**, with web
 
 Built for the [Nebius x NVIDIA Global AI Hackathon](https://nebiusglobalaihackathon.devpost.com/) (Best Apps and Agents track).
 
+**Live demo:** [vouch-phi-one.vercel.app](https://vouch-phi-one.vercel.app) · **Pitch deck:** [vouch-phi-one.vercel.app/pitch](https://vouch-phi-one.vercel.app/pitch)
+
 ## Why
 
 Installing a dependency means running a stranger's code with your permissions. The attacks are well known: hijacked maintainers (`event-stream`), typosquats (`lodahs`), authors sabotaging their own packages (`colors`), and now **slopsquatting**, where attackers register package names that AI coding assistants hallucinate. Vulnerability databases catch only part of this. The rest is scattered across blog posts, GitHub issues and security write-ups that nobody reads before running `npm install`.
