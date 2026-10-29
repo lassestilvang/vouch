@@ -13,6 +13,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
+      - run: bunx next typegen
       - run: bunx tsc --noEmit
       - run: bun run lint
       - run: bun run test
