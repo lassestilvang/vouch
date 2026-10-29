@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import Scan from "./Scan";
 import type { Dimension, Ecosystem, Evidence, LlmCall, PackageFacts, SearchHit, Signal, Verdict, VetEvent } from "@/lib/types";
 
@@ -322,7 +323,10 @@ export default function Vouch() {
 
       <footer className="mt-16 border-t border-line pt-6 text-xs text-muted">
         Vouch gives an automated opinion from public data. It can be wrong, so read the cited sources before making a security decision. Open source under the
-        MIT license.
+        MIT license. ·{" "}
+        <Link href="/pitch" className="text-info hover:underline">
+          Pitch deck
+        </Link>
       </footer>
     </main>
   );
