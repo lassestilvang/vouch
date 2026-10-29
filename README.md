@@ -96,13 +96,17 @@ SMOKE_BASE=http://127.0.0.1:3000 bun scripts/smoke.ts               # HTTP smoke
 
 ## Deploy
 
-**Nebius Serverless Endpoints** (container):
+**Nebius Serverless AI endpoint** (CPU container, no GPU needed because inference runs on Token Factory):
 
 ```bash
-docker build --platform linux/amd64 -t vouch .
-# push to Nebius Container Registry, then create an endpoint on port 3000
-# with NEBIUS_API_KEY and TAVILY_API_KEY set as environment variables
+nebius registry create --name vouch          # once
+export NEBIUS_API_KEY=... TAVILY_API_KEY=...
+REGISTRY=cr.<region>.nebius.cloud/<registry-id> ./scripts/deploy-nebius.sh
 ```
+
+The script builds the image, pushes it, creates the endpoint (or updates it), waits for the public address, and runs the smoke test against it.
+
+Before deploying, check the live models with `bun --env-file=.env.local scripts/live-check.ts`. It confirms that each Nemotron tier resolves and returns valid JSON, then runs one full vet and prints per-tier calls, tokens and latency.
 
 **Vercel**: import the repo, set the same environment variables, and deploy. `/api/vet` sets `maxDuration = 300`.
 
