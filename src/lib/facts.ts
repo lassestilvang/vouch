@@ -67,13 +67,15 @@ function githubRepoFrom(url?: string): { owner: string; repo: string } | null {
   return m ? { owner: m[1], repo: m[2] } : null;
 }
 
-async function repoFacts(repoUrl?: string): Promise<{ repo?: RepoFacts; scorecard?: Scorecard }> {
+async function repoFacts(repoUrl?: string, skipGithub = false): Promise<{ repo?: RepoFacts; scorecard?: Scorecard }> {
   const gh = githubRepoFrom(repoUrl);
   if (!gh) return {};
   const headers: Record<string, string> = { accept: "application/vnd.github+json" };
   if (process.env.GITHUB_TOKEN) headers.authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
   const [r, s] = await Promise.allSettled([
-    getJson<Record<string, unknown>>(`https://api.github.com/repos/${gh.owner}/${gh.repo}`, { headers }),
+    skipGithub
+      ? Promise.resolve({ status: 0, data: undefined })
+      : getJson<Record<string, unknown>>(`https://api.github.com/repos/${gh.owner}/${gh.repo}`, { headers }),
     getJson<{ score: number; date: string; checks: { name: string; score: number }[] }>(
       `https://api.securityscorecards.dev/projects/github.com/${gh.owner}/${gh.repo}`,
     ),
@@ -220,7 +222,11 @@ async function pypiFacts(name: string, f: PackageFacts) {
   return true;
 }
 
-export async function collectFacts(ecosystem: Ecosystem, name: string): Promise<PackageFacts> {
+/**
+ * Gather facts for one package. `light` skips the GitHub API (60 req/h without a token)
+ * so manifest scans of many packages don't exhaust it; Scorecard is still fetched.
+ */
+export async function collectFacts(ecosystem: Ecosystem, name: string, opts: { light?: boolean } = {}): Promise<PackageFacts> {
   const f: PackageFacts = {
     ecosystem,
     name,
@@ -237,7 +243,8 @@ export async function collectFacts(ecosystem: Ecosystem, name: string): Promise<
     f.errors.push(`registry: ${(e as Error).message}`);
   }
   if (!f.exists) return f;
-  const [v, r] = await Promise.allSettled([osv(ecosystem, name, f.latestVersion), repoFacts(f.repoUrl)]);
+  const skipGithub = !!opts.light && !process.env.GITHUB_TOKEN;
+  const [v, r] = await Promise.allSettled([osv(ecosystem, name, f.latestVersion), repoFacts(f.repoUrl, skipGithub)]);
   if (v.status === "fulfilled") f.vulns = v.value;
   else f.errors.push("OSV lookup failed");
   if (r.status === "fulfilled") Object.assign(f, r.value);

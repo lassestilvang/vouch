@@ -1,21 +1,9 @@
 import { vet } from "@/lib/agent";
 import { normalizeName } from "@/lib/facts";
+import { allow, clientIp } from "@/lib/ratelimit";
 import type { Ecosystem, VetEvent } from "@/lib/types";
 
 export const maxDuration = 300;
-
-// Small in-memory limiter so a public demo can't drain the Token Factory credits.
-const WINDOW_MS = 10 * 60_000;
-const LIMIT = Number(process.env.VOUCH_RATE_LIMIT ?? 20);
-const hits = new Map<string, number[]>();
-function allow(ip: string) {
-  const now = Date.now();
-  const recent = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-  if (recent.length >= LIMIT) return false;
-  recent.push(now);
-  hits.set(ip, recent);
-  return true;
-}
 
 export async function POST(req: Request) {
   let body: { ecosystem?: string; name?: string; fresh?: boolean };
@@ -29,8 +17,7 @@ export async function POST(req: Request) {
   const name = normalizeName(ecosystem, String(body.name ?? ""));
   if (!name) return Response.json({ error: "invalid package name" }, { status: 400 });
 
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "local";
-  if (!allow(ip)) return Response.json({ error: "rate limit reached, try again in a few minutes" }, { status: 429 });
+  if (!allow(`vet:${clientIp(req)}`)) return Response.json({ error: "rate limit reached, try again in a few minutes" }, { status: 429 });
 
   const enc = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Scan from "./Scan";
 import type { Dimension, Ecosystem, Evidence, LlmCall, PackageFacts, SearchHit, Signal, Verdict, VetEvent } from "@/lib/types";
 
 type StageName = "collect" | "plan" | "search" | "triage" | "verdict";
@@ -67,6 +68,7 @@ function initialStages(): Record<StageName, StageState> {
 }
 
 export default function Vouch() {
+  const [mode, setMode] = useState<"single" | "scan">("single");
   const [ecosystem, setEcosystem] = useState<Ecosystem>("npm");
   const [name, setName] = useState("");
   const [running, setRunning] = useState(false);
@@ -128,6 +130,7 @@ export default function Vouch() {
     async (eco: Ecosystem, pkg: string, fresh = false) => {
       const n = pkg.trim();
       if (!n) return;
+      setMode("single");
       abortRef.current?.abort();
       const ac = new AbortController();
       abortRef.current = ac;
@@ -208,92 +211,118 @@ export default function Vouch() {
         </p>
       </header>
 
-      <form
-        className="mt-6 flex flex-col gap-2 sm:flex-row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          run(ecosystem, name);
-        }}
-      >
-        <div className="flex rounded-lg border border-line bg-panel p-1" role="radiogroup" aria-label="Ecosystem">
-          {(["npm", "pypi"] as const).map((eco) => (
-            <button
-              key={eco}
-              type="button"
-              role="radio"
-              aria-checked={ecosystem === eco}
-              onClick={() => setEcosystem(eco)}
-              className={`rounded-md px-3 py-2 text-sm font-medium ${ecosystem === eco ? "bg-panel-2 text-text" : "text-muted hover:text-text"}`}
-            >
-              {eco === "npm" ? "npm" : "PyPI"}
-            </button>
-          ))}
-        </div>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={ecosystem === "npm" ? "package name, e.g. left-pad" : "package name, e.g. requests"}
-          aria-label="Package name"
-          autoCapitalize="off"
-          autoCorrect="off"
-          spellCheck={false}
-          className="flex-1 rounded-lg border border-line bg-panel px-4 py-3 font-mono text-sm outline-none placeholder:text-muted focus:border-accent"
-        />
-        <button
-          type="submit"
-          disabled={running || !name.trim()}
-          className="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-black disabled:opacity-50"
-        >
-          {running ? "Checking…" : "Vet package"}
-        </button>
-      </form>
-
-      <div className="mt-3 flex flex-wrap gap-2 text-xs">
-        <span className="py-1 text-muted">Try:</span>
-        {EXAMPLES.map((x) => (
+      <div className="mt-6 flex gap-1 border-b border-line" role="tablist">
+        {(
+          [
+            ["single", "One package"],
+            ["scan", "Scan a manifest"],
+          ] as const
+        ).map(([m, label]) => (
           <button
-            key={`${x.e}:${x.n}`}
-            onClick={() => run(x.e, x.n)}
-            disabled={running}
-            className="rounded-full border border-line bg-panel px-3 py-1 hover:border-accent disabled:opacity-50"
+            key={m}
+            role="tab"
+            aria-selected={mode === m}
+            onClick={() => setMode(m)}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm ${mode === m ? "border-accent text-text" : "border-transparent text-muted hover:text-text"}`}
           >
-            <span className="font-mono">{x.n}</span> <span className="text-muted">· {x.hint}</span>
+            {label}
           </button>
         ))}
       </div>
 
-      {error && <div className="mt-6 rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</div>}
+      {/* Kept mounted so scan results survive a deep dive and a switch back. */}
+      <div hidden={mode !== "scan"}>
+        <Scan
+          onDeepDive={(eco, n) => {
+            run(eco, n);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        />
+      </div>
 
-      {!started && <Intro />}
-
-      {started && (
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_340px]">
-          <div className="flex min-w-0 flex-col gap-6">
-            <VerdictCard
-              verdict={verdict}
-              facts={facts}
-              running={running}
-              hitById={hitById}
-              vulnById={vulnById}
-              onAlternative={(n) => run(ecosystem, n)}
+      {mode === "single" && (
+        <>
+          <form
+            className="mt-6 flex flex-col gap-2 sm:flex-row"
+            onSubmit={(e) => {
+              e.preventDefault();
+              run(ecosystem, name);
+            }}
+          >
+            <div className="flex rounded-lg border border-line bg-panel p-1" role="radiogroup" aria-label="Ecosystem">
+              {(["npm", "pypi"] as const).map((eco) => (
+                <button
+                  key={eco}
+                  type="button"
+                  role="radio"
+                  aria-checked={ecosystem === eco}
+                  onClick={() => setEcosystem(eco)}
+                  className={`rounded-md px-3 py-2 text-sm font-medium ${ecosystem === eco ? "bg-panel-2 text-text" : "text-muted hover:text-text"}`}
+                >
+                  {eco === "npm" ? "npm" : "PyPI"}
+                </button>
+              ))}
+            </div>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={ecosystem === "npm" ? "package name, e.g. left-pad" : "package name, e.g. requests"}
+              aria-label="Package name"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
+              className="flex-1 rounded-lg border border-line bg-panel px-4 py-3 font-mono text-sm outline-none placeholder:text-muted focus:border-accent"
             />
-            {facts && <FactsCard facts={facts} signals={signals} />}
-            {hits.length > 0 && <SourcesCard hits={hits} evidence={evidence} />}
-          </div>
-          <aside className="flex flex-col gap-6">
-            <TraceCard stages={stages} queries={queries} calls={calls} totalMs={totalMs} />
-            {totalMs !== null && (
-              <button onClick={() => run(ecosystem, name, true)} className="text-left text-xs text-muted underline hover:text-text">
-                Re-run without cache
+            <button
+              type="submit"
+              disabled={running || !name.trim()}
+              className="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-black disabled:opacity-50"
+            >
+              {running ? "Checking…" : "Vet package"}
+            </button>
+          </form>
+
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            <span className="py-1 text-muted">Try:</span>
+            {EXAMPLES.map((x) => (
+              <button
+                key={`${x.e}:${x.n}`}
+                onClick={() => run(x.e, x.n)}
+                disabled={running}
+                className="rounded-full border border-line bg-panel px-3 py-1 hover:border-accent disabled:opacity-50"
+              >
+                <span className="font-mono">{x.n}</span> <span className="text-muted">· {x.hint}</span>
               </button>
-            )}
-          </aside>
-        </div>
+            ))}
+          </div>
+
+          {error && <div className="mt-6 rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</div>}
+
+          {!started && <Intro />}
+
+          {started && (
+            <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_340px]">
+              <div className="flex min-w-0 flex-col gap-6">
+                <VerdictCard verdict={verdict} facts={facts} running={running} hitById={hitById} vulnById={vulnById} onAlternative={(n) => run(ecosystem, n)} />
+                {facts && <FactsCard facts={facts} signals={signals} />}
+                {hits.length > 0 && <SourcesCard hits={hits} evidence={evidence} />}
+              </div>
+              <aside className="flex flex-col gap-6">
+                <TraceCard stages={stages} queries={queries} calls={calls} totalMs={totalMs} />
+                {totalMs !== null && (
+                  <button onClick={() => run(ecosystem, name, true)} className="text-left text-xs text-muted underline hover:text-text">
+                    Re-run without cache
+                  </button>
+                )}
+              </aside>
+            </div>
+          )}
+        </>
       )}
 
       <footer className="mt-16 border-t border-line pt-6 text-xs text-muted">
-        Vouch gives an automated opinion from public data. It can be wrong, so read the cited sources before making a security decision.
-        Open source under the MIT license.
+        Vouch gives an automated opinion from public data. It can be wrong, so read the cited sources before making a security decision. Open source under the
+        MIT license.
       </footer>
     </main>
   );
@@ -301,7 +330,10 @@ export default function Vouch() {
 
 function Intro() {
   const items = [
-    ["Hard facts first", "Registry metadata, OSV.dev advisories, GitHub activity, OpenSSF Scorecard, install scripts, typosquat distance and npm provenance. No LLM involved, so these can't be hallucinated."],
+    [
+      "Hard facts first",
+      "Registry metadata, OSV.dev advisories, GitHub activity, OpenSSF Scorecard, install scripts, typosquat distance and npm provenance. No LLM involved, so these can't be hallucinated.",
+    ],
     ["Then the web", "Nemotron Super plans targeted Tavily searches for incidents, takeovers and abandonment that databases miss."],
     ["Right-sized models", "Nemotron Nano triages every source in parallel. Nemotron Ultra reasons over everything once and writes a cited verdict."],
   ];
@@ -331,7 +363,8 @@ function Card({ title, children, right }: { title: string; children: React.React
 
 function Cite({ id, hitById, vulnById }: { id: string; hitById: Map<string, SearchHit>; vulnById: Map<string, { url: string }> }) {
   const clean = id.replace(/[[\]]/g, "");
-  const href = hitById.get(clean)?.url ?? vulnById.get(clean)?.url ?? (/^(GHSA|CVE|MAL|PYSEC)-/.test(clean) ? `https://osv.dev/vulnerability/${clean}` : undefined);
+  const href =
+    hitById.get(clean)?.url ?? vulnById.get(clean)?.url ?? (/^(GHSA|CVE|MAL|PYSEC)-/.test(clean) ? `https://osv.dev/vulnerability/${clean}` : undefined);
   if (!href) return <span className="font-mono text-[11px] text-muted">[{clean}]</span>;
   return (
     <a href={href} target="_blank" rel="noopener noreferrer" className="font-mono text-[11px] text-info hover:underline" title={hitById.get(clean)?.title}>
@@ -546,7 +579,10 @@ function SourcesCard({ hits, evidence }: { hits: SearchHit[]; evidence: Evidence
   const sorted = [...hits].sort((a, b) => Number(ev.get(b.id)?.relevant ?? 0) - Number(ev.get(a.id)?.relevant ?? 0));
   const relevant = evidence.filter((e) => e.relevant).length;
   return (
-    <Card title="Web sources" right={<span className="text-xs text-muted">{evidence.length ? `${relevant} of ${hits.length} relevant` : `${hits.length} found`}</span>}>
+    <Card
+      title="Web sources"
+      right={<span className="text-xs text-muted">{evidence.length ? `${relevant} of ${hits.length} relevant` : `${hits.length} found`}</span>}
+    >
       <ul className="flex flex-col divide-y divide-line">
         {sorted.map((h) => {
           const e = ev.get(h.id);
@@ -577,7 +613,17 @@ function SourcesCard({ hits, evidence }: { hits: SearchHit[]; evidence: Evidence
   );
 }
 
-function TraceCard({ stages, queries, calls, totalMs }: { stages: Record<StageName, StageState>; queries: string[]; calls: LlmCall[]; totalMs: number | null }) {
+function TraceCard({
+  stages,
+  queries,
+  calls,
+  totalMs,
+}: {
+  stages: Record<StageName, StageState>;
+  queries: string[];
+  calls: LlmCall[];
+  totalMs: number | null;
+}) {
   const byTier = (["nano", "super", "ultra"] as const).map((t) => {
     const cs = calls.filter((c) => c.tier === t);
     return { tier: t, n: cs.length, tokens: cs.reduce((a, c) => a + (c.promptTokens ?? 0) + (c.completionTokens ?? 0), 0) };

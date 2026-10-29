@@ -115,6 +115,32 @@ export interface LlmCall {
   error?: string;
 }
 
+export interface ScanRow {
+  name: string;
+  spec: string;
+  dev: boolean;
+  exists: boolean;
+  latestVersion?: string;
+  weeklyDownloads?: number;
+  lastPublishedAt?: string;
+  license?: string;
+  signals: Signal[];
+  /** Rule-based risk before the model looks at it. */
+  ruleRisk: "low" | "medium" | "high";
+  /** Nemotron Nano's screening opinion. */
+  risk?: "low" | "medium" | "high";
+  reason?: string;
+}
+
+/** Events streamed from /api/scan as NDJSON. */
+export type ScanEvent =
+  | { type: "manifest"; ecosystem: Ecosystem; kind: string; total: number; skipped: string[]; truncated: number }
+  | { type: "row"; row: ScanRow }
+  | { type: "screen"; items: { name: string; risk: "low" | "medium" | "high"; reason: string }[] }
+  | { type: "llm"; call: LlmCall }
+  | { type: "error"; message: string }
+  | { type: "done"; ms: number };
+
 /** Events streamed from /api/vet as NDJSON. */
 export type VetEvent =
   | { type: "stage"; stage: "collect" | "plan" | "search" | "triage" | "verdict"; status: "start" | "done"; note?: string }

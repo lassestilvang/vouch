@@ -36,6 +36,10 @@ package name
 
 Every step streams to the UI as NDJSON, so you see the facts in about a second and watch the agent work. The **Agent trace** panel shows each model call with its tier, model id, latency and tokens.
 
+### Scan a whole manifest
+
+Paste a `package.json` or `requirements.txt` (up to 40 dependencies). Vouch collects facts for every dependency in parallel, and **Nemotron Nano** screens them in batches of eight. The table sorts by the worse of the rule-based and model risk, so the model can't hide a hard red flag. Click **Deep dive** on anything suspicious to run the full five-stage investigation with **Nemotron Ultra**. Cheap screening covers everything, and the expensive reasoning model runs only where it's needed.
+
 ### Model routing on Token Factory
 
 The Best Apps and Agents track asks for Nemotron 3 Ultra on hard reasoning and Nano or Super on fast, everyday calls. Vouch does exactly that:
@@ -45,6 +49,7 @@ The Best Apps and Agents track asks for Nemotron 3 Ultra on hard reasoning and N
 | Plan research | Nemotron 3 **Super** | Needs some judgement to target the risks visible in the facts, but runs once and must be quick |
 | Triage sources | Nemotron 3 **Nano** | Up to 6 parallel calls doing narrow extraction; the cheapest, fastest model does them well |
 | Verdict | Nemotron 3 **Ultra** (reasoning on) | One call that must weigh conflicting, dated evidence and stay calibrated |
+| Manifest screening | Nemotron 3 **Nano** | One call per 8 dependencies; flags candidates for an Ultra deep dive |
 
 A typical run makes about 8 model calls. Most of the tokens go to Nano, and Ultra sees only the distilled evidence, not raw web pages. That keeps a run fast and cheap without giving up quality where it matters.
 
@@ -86,6 +91,7 @@ Deep links work: `/?e=npm&p=event-stream` starts a check on load.
 bun run mock                                                        # mock Token Factory on :18555
 NEBIUS_API_KEY=mock NEBIUS_BASE_URL=http://127.0.0.1:18555/v1/ bun run dev
 bun run test                                                        # pipeline test against an in-process mock
+SMOKE_BASE=http://127.0.0.1:3000 bun scripts/smoke.ts               # HTTP smoke test against a running server
 ```
 
 ## Deploy
@@ -107,7 +113,10 @@ src/lib/facts.ts      registry, OSV, deps.dev, GitHub, Scorecard collectors; typ
 src/lib/signals.ts    deterministic rule-based signals
 src/lib/llm.ts        Token Factory client, model discovery and routing, JSON repair
 src/lib/agent.ts      the 5-stage pipeline and prompts
-src/app/api/vet       streaming NDJSON API
+src/lib/scan.ts       manifest screening (facts for all deps + Nano batches)
+src/lib/manifest.ts   package.json / requirements.txt parser
+src/app/api/vet       streaming NDJSON API, one package
+src/app/api/scan      streaming NDJSON API, whole manifest
 src/components        UI
 scripts/              mock Token Factory and pipeline test
 ```

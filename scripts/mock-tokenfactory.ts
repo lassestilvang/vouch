@@ -23,6 +23,10 @@ Bun.serve({
     if (sys.includes("plan web searches")) {
       await sleep(600);
       content = JSON.stringify({ queries: [`${pkg} npm security incident`, `${pkg} npm maintainer change`, `${pkg} npm deprecated`, `${pkg} npm alternative`] });
+    } else if (sys.includes("screen a project's dependencies")) {
+      await sleep(500);
+      const names = [...user.matchAll(/^(\S+?)(?:@|:)/gm)].map((m) => m[1]).filter((n) => n !== "Ecosystem");
+      content = JSON.stringify({ items: names.map((name) => ({ name, risk: /DOES NOT EXIST/.test(user.split("\n").find((l) => l.startsWith(name)) ?? "") ? "high" : "low", reason: "Mock screening reason." })) });
     } else if (sys.includes("extract evidence")) {
       await sleep(400 + Math.random() * 500);
       const ids = [...user.matchAll(/id="(S\d+)"/g)].map((m) => m[1]);

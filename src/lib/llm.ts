@@ -128,7 +128,16 @@ export async function jsonCall<T>(o: JsonCallOptions<T>): Promise<T> {
         temperature: o.think ? 0.6 : 0.2,
         max_tokens: o.maxTokens ?? 2048,
       });
-      const text = res.choices[0]?.message?.content ?? "";
+      const choice = res.choices[0];
+      const msg = choice?.message as (OpenAI.Chat.ChatCompletionMessage & { reasoning_content?: string }) | undefined;
+      // Some servers put the answer after a reasoning trace in `reasoning_content` and leave
+      // `content` empty when the token budget runs out; fall back to scanning the trace.
+      const text = msg?.content || msg?.reasoning_content || "";
+      if (choice?.finish_reason === "length" && !msg?.content) {
+        o.onCall?.({ id, stage: o.stage, tier: o.tier, model, ms: Date.now() - t0, ok: false, error: "ran out of tokens while reasoning" });
+        messages[0] = { role: "system", content: `/no_think\n${o.system}\nReply with JSON only. No markdown fences.` };
+        continue;
+      }
       const call: LlmCall = {
         id, stage: o.stage, tier: o.tier, model, ms: Date.now() - t0,
         promptTokens: res.usage?.prompt_tokens, completionTokens: res.usage?.completion_tokens, ok: true,

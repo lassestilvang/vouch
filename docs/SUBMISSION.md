@@ -25,6 +25,8 @@ Type a package name. Vouch returns:
 - concrete risks, each cited to an OSV advisory or a web source you can click
 - safer alternatives, each of which you can vet with one click
 
+You can also paste a whole `package.json` or `requirements.txt`. Nemotron Nano screens every dependency in seconds, and you pick the risky ones for a full Nemotron Ultra investigation.
+
 Hard facts appear within about a second: downloads, release history, advisories affecting the latest version, archived repos, install scripts, npm build provenance, OpenSSF Scorecard, typosquat distance, and whether the package exists at all. Then you watch the agent research and reason in a live trace.
 
 ### How we built it
@@ -59,7 +61,7 @@ Right-sizing models matters more than using the biggest one everywhere. Nano is 
 
 ### What's next
 
-- Scan a whole `package.json` or `requirements.txt`, with Nano screening every dependency and Ultra deep-diving only the flagged ones
+- Lockfile scanning, including transitive dependencies
 - A GitHub Action that comments on PRs that add new dependencies
 - More ecosystems (crates.io, Go, Maven)
 - An MCP server, so coding agents can check packages *before* suggesting them
@@ -76,8 +78,9 @@ NVIDIA Nemotron 3 (Nano, Super, Ultra), Nebius Token Factory, Tavily, Next.js, T
 | 0:20–1:05 | Vet `event-stream`. Facts land, the trace runs, the verdict comes in | "Hard facts first: OSV advisory, archived repo, eight years without a release. Nemotron Super plans the searches, Tavily runs them, Nemotron Nano triages every source in parallel, and Nemotron Ultra reasons to a cited verdict. Avoid, with the 2018 hijack cited." |
 | 1:05–1:25 | Click a citation, then an alternative | "Every claim links to its source. Alternatives are one click to vet." |
 | 1:25–1:50 | Vet `reqeusts` (PyPI) | "This is what an AI assistant might suggest. It doesn't exist. If someone registers it tomorrow, it's malware. Vouch says so and suggests `requests`." |
-| 1:50–2:10 | Vet `lodahs` | "A typosquat that npm already pulled. Caught by the facts layer, no LLM needed." |
-| 2:10–2:35 | Vet `requests` or `zod`. Zoom in on the model routing panel | "Healthy packages get Adopt, so it isn't just paranoid. Here's the routing on Token Factory: [6] Nano calls, one Super, one Ultra. Most tokens go to the cheapest model." |
+| 1:50–2:00 | Vet `lodahs` | "A typosquat that npm already pulled. Caught by the facts layer, no LLM needed." |
+| 2:00–2:20 | Scan a manifest: the sample package.json | "Or paste a whole package.json. Nano screens every dependency in a few seconds, and the risky ones float to the top. Deep dive sends just those to Ultra." |
+| 2:20–2:35 | Zoom in on the model routing panel | "Here's the routing on Token Factory: [6] Nano calls, one Super, one Ultra. Most tokens go to the cheapest model." |
 | 2:35–3:00 | README architecture, repo URL | "Open source under MIT, deployed on [host]. Vouch: know what you install." |
 
 ## Token Factory and NVIDIA feedback (for the feedback field and the $100 feedback prize)
