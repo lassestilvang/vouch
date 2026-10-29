@@ -1,0 +1,38 @@
+// Well-known package names used for typosquat detection. Not exhaustive, just
+// the names attackers most often imitate.
+export const POPULAR: Record<"npm" | "pypi", string[]> = {
+  npm: [
+    "react", "react-dom", "next", "vue", "angular", "svelte", "express", "koa", "fastify",
+    "lodash", "underscore", "axios", "request", "node-fetch", "got", "superagent", "chalk",
+    "commander", "yargs", "inquirer", "debug", "dotenv", "moment", "dayjs", "date-fns",
+    "uuid", "nanoid", "classnames", "clsx", "typescript", "webpack", "vite", "rollup",
+    "esbuild", "babel-core", "@babel/core", "eslint", "prettier", "jest", "mocha", "chai",
+    "vitest", "cypress", "playwright", "puppeteer", "socket.io", "ws", "mongoose", "mongodb",
+    "mysql", "mysql2", "pg", "redis", "ioredis", "sequelize", "prisma", "knex", "jsonwebtoken",
+    "bcrypt", "bcryptjs", "passport", "cors", "helmet", "body-parser", "cookie-parser",
+    "multer", "nodemon", "pm2", "rxjs", "zod", "yup", "joi", "ajv", "immer", "redux",
+    "zustand", "mobx", "graphql", "apollo-server", "tailwindcss", "postcss", "autoprefixer",
+    "sass", "less", "styled-components", "emotion", "framer-motion", "three", "d3", "chart.js",
+    "electron", "cross-env", "rimraf", "glob", "minimist", "semver", "colors", "event-stream",
+    "async", "bluebird", "qs", "ms", "mime", "fs-extra", "jquery", "bootstrap", "openai",
+    "stripe", "aws-sdk", "firebase", "sharp", "jimp", "cheerio", "jsdom", "marked",
+    "highlight.js", "ua-parser-js", "coa", "rc", "node-ipc", "eslint-scope", "crypto-js",
+    "discord.js", "web3", "ethers", "solc", "ts-node", "tslib", "core-js", "regenerator-runtime",
+  ],
+  pypi: [
+    "requests", "urllib3", "numpy", "pandas", "scipy", "matplotlib", "seaborn", "scikit-learn",
+    "tensorflow", "torch", "torchvision", "keras", "transformers", "tokenizers", "datasets",
+    "openai", "anthropic", "langchain", "llama-index", "flask", "django", "fastapi", "uvicorn",
+    "gunicorn", "starlette", "pydantic", "sqlalchemy", "psycopg2", "psycopg2-binary", "pymysql",
+    "redis", "celery", "boto3", "botocore", "awscli", "google-cloud-storage", "pillow",
+    "opencv-python", "beautifulsoup4", "lxml", "selenium", "playwright", "scrapy", "httpx",
+    "aiohttp", "pyyaml", "toml", "python-dotenv", "click", "typer", "rich", "tqdm", "colorama",
+    "setuptools", "wheel", "pip", "virtualenv", "pytest", "tox", "black", "flake8", "pylint",
+    "mypy", "isort", "jinja2", "markupsafe", "werkzeug", "itsdangerous", "cryptography",
+    "pycryptodome", "paramiko", "pyjwt", "bcrypt", "certifi", "idna", "charset-normalizer",
+    "six", "python-dateutil", "pytz", "arrow", "simplejson", "ujson", "orjson", "protobuf",
+    "grpcio", "jupyter", "notebook", "ipython", "pyspark", "dask", "xgboost", "lightgbm",
+    "nltk", "spacy", "gensim", "networkx", "sympy", "plotly", "streamlit", "gradio", "discord.py",
+    "telegram", "python-telegram-bot", "web3", "colorlog", "ctx", "pytorch",
+  ],
+};
