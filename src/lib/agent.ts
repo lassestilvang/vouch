@@ -82,14 +82,20 @@ export function heuristicVerdict(f: PackageFacts, signals: Signal[]): Verdict {
   const verdict = !f.exists || danger.length ? "avoid" : warn.length >= 2 ? "caution" : "adopt";
   return {
     verdict,
-    confidence: "low",
-    headline: !f.exists ? "Package does not exist" : `Rule-based verdict: ${verdict}`,
-    summary: "The reasoning model was unavailable, so this verdict comes from registry, OSV and repository signals only.",
+    confidence: !f.exists ? "high" : "low",
+    headline: !f.exists ? "This package does not exist" : `Rule-based verdict: ${verdict}`,
+    summary: !f.exists
+      ? `There is no ${f.ecosystem === "npm" ? "npm" : "PyPI"} package called "${f.name}". Installing it today fails. If someone registers the name later, anyone who installs it runs their code. AI coding assistants regularly invent names like this, and attackers register them ("slopsquatting").`
+      : "The reasoning model was unavailable, so this verdict comes from registry, OSV and repository signals only.",
     scores,
     risks: [...danger, ...warn].slice(0, 6).map((s) => ({ title: s.text, detail: "", severity: s.level === "danger" ? "high" : "medium", citations: [] })),
     strengths: signals.filter((s) => s.level === "good").map((s) => s.text),
     alternatives: [],
-    recommendation: verdict === "adopt" ? "No blocking signals found." : "Review the flagged signals before adopting.",
+    recommendation: !f.exists
+      ? `Do not add "${f.name}" to your dependencies.${f.typosquatOf[0] ? ` You probably meant "${f.typosquatOf[0].name}".` : " Check the spelling and the source of the suggestion."}`
+      : verdict === "adopt"
+        ? "No blocking signals found."
+        : "Review the flagged signals before adopting.",
   };
 }
 
