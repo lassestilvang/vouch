@@ -51,9 +51,11 @@ The Best Apps and Agents track asks for Nemotron 3 Ultra on hard reasoning and N
 | Verdict | Nemotron 3 **Ultra** (reasoning on) | One call that must weigh conflicting, dated evidence and stay calibrated |
 | Manifest screening | Nemotron 3 **Nano** | One call per 8 dependencies; flags candidates for an Ultra deep dive |
 
-A typical run makes about 8 model calls. Most of the tokens go to Nano, and Ultra sees only the distilled evidence, not raw web pages. That keeps a run fast and cheap without giving up quality where it matters.
+A typical run makes about 7 model calls (1 Super, 5 Nano, 1 Ultra) and about 10,000 tokens in 20–28 s. Most of the tokens go to Nano, and Ultra sees only the distilled evidence, not raw web pages. That keeps a run fast and cheap without giving up quality where it matters.
 
 Model ids are discovered at startup from Token Factory's `/v1/models`. Vouch picks the served Nemotron 3 Nano, Super and Ultra models automatically and falls back to the next tier if one is missing. You can pin ids with environment variables.
+
+**Reasoning control.** Nemotron 3 reasons by default. Vouch keeps reasoning on for the Ultra verdict only, and disables it for Nano and Super with `chat_template_kwargs: {"enable_thinking": false}`. On Token Factory, the `/no_think` prompt switch has no effect. Turning reasoning off made extraction calls about 3× faster with about 5× fewer tokens.
 
 ### Reliability and safety
 

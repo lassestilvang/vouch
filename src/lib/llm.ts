@@ -122,12 +122,16 @@ export async function jsonCall<T>(o: JsonCallOptions<T>): Promise<T> {
     const t0 = Date.now();
     const id = `c${++callSeq}`;
     try {
+      // On Token Factory, Nemotron 3 ignores "/no_think"; reasoning is switched off through the
+      // chat template instead. Measured: ~3x faster and ~5x fewer tokens on extraction calls.
+      const reasoningOff = !o.think || attempt > 0 && messages[0].content?.toString().startsWith("/no_think");
       const res = await getClient().chat.completions.create({
         model,
         messages,
         temperature: o.think ? 0.6 : 0.2,
         max_tokens: o.maxTokens ?? 2048,
-      });
+        ...(reasoningOff ? { chat_template_kwargs: { enable_thinking: false } } : {}),
+      } as OpenAI.Chat.ChatCompletionCreateParamsNonStreaming);
       const choice = res.choices[0];
       const msg = choice?.message as (OpenAI.Chat.ChatCompletionMessage & { reasoning_content?: string }) | undefined;
       // Some servers put the answer after a reasoning trace in `reasoning_content` and leave
