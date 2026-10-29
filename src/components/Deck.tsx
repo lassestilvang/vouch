@@ -258,9 +258,9 @@ const SLIDES: { id: string; render: SlideFn; notes: string }[] = [
           </Step>
           <div className="mt-12 space-y-5">
             {[
-              { t: "Nano", calls: "4–6", tok: 5900, ms: "1–10 s, in parallel", role: "triage", cls: "bg-info" },
+              { t: "Nano", calls: "4–6", tok: 5900, ms: "1–10 s each", role: "triage, in parallel", cls: "bg-info" },
               { t: "Super", calls: "1", tok: 560, ms: "0.7 s", role: "plan research", cls: "bg-warn" },
-              { t: "Ultra", calls: "1", tok: 3700, ms: "10–16 s", role: "reasoned verdict", cls: "bg-accent" },
+              { t: "Ultra", calls: "1", tok: 3700, ms: "9–16 s", role: "reasoned verdict", cls: "bg-accent" },
             ].map((r, i) => (
               <Step key={r.t} i={i + 2} active={a}>
                 <div className="flex items-center gap-5">
@@ -273,7 +273,7 @@ const SLIDES: { id: string; render: SlideFn; notes: string }[] = [
                       {(r.tok / 1000).toFixed(1)}k tok
                     </div>
                   </div>
-                  <span className="w-48 text-right text-base text-muted">
+                  <span className="w-56 whitespace-nowrap text-right text-base text-muted">
                     {r.calls} call{r.calls === "1" ? "" : "s"} · {r.ms}
                   </span>
                 </div>
