@@ -203,7 +203,7 @@ const SLIDES: { id: string; render: SlideFn; notes: string }[] = [
           </Step>
         </div>
         <Step i={2} active={a} className="max-h-[78vh] overflow-hidden rounded-2xl">
-          <Shot src="/pitch/img/verdict.png" alt="Vouch verdict for event-stream: Avoid, high confidence, with cited risks" w={1480} h={2264} />
+          <Shot src="/pitch/img/verdict.png" alt="Vouch verdict for event-stream: Avoid, high confidence, with cited risks" w={1664} h={3290} />
         </Step>
       </div>
     ),
@@ -288,7 +288,7 @@ const SLIDES: { id: string; render: SlideFn; notes: string }[] = [
           </Step>
         </div>
         <Step i={3} active={a} className="justify-self-center">
-          <Shot src="/pitch/img/trace.png" alt="Agent trace panel showing per-call model routing" w={680} h={1486} className="max-h-[78vh] w-[340px]" />
+          <Shot src="/pitch/img/trace.png" alt="Agent trace panel showing per-call model routing" w={720} h={1396} className="max-h-[78vh] w-[360px]" />
         </Step>
       </div>
     ),
@@ -371,7 +371,7 @@ const SLIDES: { id: string; render: SlideFn; notes: string }[] = [
           </Step>
         </div>
         <Step i={2} active={a}>
-          <Shot src="/pitch/img/scan.png" alt="Manifest scan table with high, medium and low risk dependencies" w={2208} h={1294} />
+          <Shot src="/pitch/img/scan.png" alt="Manifest scan table with high, medium and low risk dependencies" w={2304} h={1496} />
         </Step>
       </div>
     ),

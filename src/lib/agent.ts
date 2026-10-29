@@ -74,7 +74,8 @@ const VerdictSchema = z.object({
 
 /** Score from rule-based signals only. Used when the reasoning model is unavailable. */
 export function heuristicVerdict(f: PackageFacts, signals: Signal[]): Verdict {
-  const scores = Object.fromEntries(DIMENSIONS.map((d) => [d, 7])) as Record<Dimension, number>;
+  // A package that doesn't exist has nothing to trust on any dimension.
+  const scores = Object.fromEntries(DIMENSIONS.map((d) => [d, f.exists ? 7 : 0])) as Record<Dimension, number>;
   const delta = { good: 1.5, info: 0, warn: -2, danger: -5 } as const;
   for (const s of signals) scores[s.dimension] = Math.max(0, Math.min(10, scores[s.dimension] + delta[s.level]));
   const danger = signals.filter((s) => s.level === "danger");

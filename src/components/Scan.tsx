@@ -94,13 +94,13 @@ export default function Scan({ onDeepDive }: { onDeepDive: (e: Ecosystem, name: 
           spellCheck={false}
           aria-label="Manifest"
           placeholder="Paste a package.json or requirements.txt (up to 40 dependencies)"
-          className="w-full rounded-lg border border-line bg-panel px-4 py-3 font-mono text-xs outline-none placeholder:text-muted focus:border-accent"
+          className="glass w-full rounded-2xl px-5 py-4 font-mono text-sm outline-none placeholder:text-white/25 focus:border-accent/50"
         />
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <button
             type="submit"
             disabled={running || !text.trim()}
-            className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
+            className="rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-black transition hover:brightness-110 disabled:opacity-40"
           >
             {running ? "Scanning…" : "Scan dependencies"}
           </button>
@@ -109,7 +109,7 @@ export default function Scan({ onDeepDive }: { onDeepDive: (e: Ecosystem, name: 
             type="button"
             disabled={running}
             onClick={() => start(SAMPLE_NPM)}
-            className="rounded-full border border-line bg-panel px-3 py-1 text-xs hover:border-accent"
+            className="rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-sm hover:border-accent/60"
           >
             package.json
           </button>
@@ -117,7 +117,7 @@ export default function Scan({ onDeepDive }: { onDeepDive: (e: Ecosystem, name: 
             type="button"
             disabled={running}
             onClick={() => start(SAMPLE_PY)}
-            className="rounded-full border border-line bg-panel px-3 py-1 text-xs hover:border-accent"
+            className="rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-sm hover:border-accent/60"
           >
             requirements.txt
           </button>
@@ -127,14 +127,14 @@ export default function Scan({ onDeepDive }: { onDeepDive: (e: Ecosystem, name: 
       {error && <div className="mt-6 rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</div>}
 
       {meta && (
-        <section className="mt-6 rounded-xl border border-line bg-panel">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3 text-sm">
+        <section data-demo="scan" className="glass rise mt-6 overflow-hidden rounded-3xl">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 px-6 py-4 text-sm">
             <div className="flex flex-wrap items-center gap-3">
               <span className="font-medium">
                 {rows.length}/{meta.total} {meta.kind} dependencies
               </span>
               {(["high", "medium", "low"] as const).map((k) => (
-                <span key={k} className={`rounded px-2 py-0.5 text-xs font-medium ${RISK_STYLE[k]}`}>
+                <span key={k} className={`rounded-md px-2.5 py-1 text-xs font-semibold ${RISK_STYLE[k]}`}>
                   {counts[k]} {k}
                 </span>
               ))}
@@ -145,7 +145,7 @@ export default function Scan({ onDeepDive }: { onDeepDive: (e: Ecosystem, name: 
             </span>
           </div>
           {(meta.skipped.length > 0 || meta.truncated > 0) && (
-            <p className="border-b border-line px-5 py-2 text-xs text-muted">
+            <p className="border-b border-white/5 px-6 py-2 text-xs text-muted">
               {meta.truncated > 0 && `Only the first ${meta.total} dependencies were scanned. `}
               {meta.skipped.length > 0 && `Skipped non-registry entries: ${meta.skipped.slice(0, 6).join(", ")}${meta.skipped.length > 6 ? "…" : ""}`}
             </p>
@@ -153,8 +153,8 @@ export default function Scan({ onDeepDive }: { onDeepDive: (e: Ecosystem, name: 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="text-xs text-muted">
-                <tr className="border-b border-line">
-                  <th className="px-5 py-2 font-normal">Risk</th>
+                <tr className="border-b border-white/5">
+                  <th className="px-6 py-3 font-normal">Risk</th>
                   <th className="px-2 py-2 font-normal">Package</th>
                   <th className="px-2 py-2 font-normal">Why</th>
                   <th className="px-2 py-2 text-right font-normal">Downloads/wk</th>
@@ -166,19 +166,19 @@ export default function Scan({ onDeepDive }: { onDeepDive: (e: Ecosystem, name: 
                   const risk = effective(r);
                   const flags = r.signals.filter((s) => s.level === "danger" || s.level === "warn");
                   return (
-                    <tr key={r.name} className="border-b border-line last:border-0 align-top">
-                      <td className="px-5 py-3">
-                        <span className={`rounded px-2 py-0.5 text-xs font-medium uppercase ${RISK_STYLE[risk]}`}>{risk}</span>
+                    <tr key={r.name} className="border-b border-white/5 align-top transition last:border-0 hover:bg-white/[0.02]">
+                      <td className="px-6 py-4">
+                        <span className={`rounded-md px-2.5 py-1 text-xs font-bold uppercase ${RISK_STYLE[risk]}`}>{risk}</span>
                       </td>
-                      <td className="px-2 py-3">
-                        <div className="font-mono">{r.name}</div>
+                      <td className="px-2 py-4">
+                        <div className="font-mono text-base">{r.name}</div>
                         <div className="font-mono text-xs text-muted">
                           {r.spec || "any"}
                           {r.latestVersion && ` → ${r.latestVersion}`}
                           {r.dev && " · dev"}
                         </div>
                       </td>
-                      <td className="max-w-md px-2 py-3">
+                      <td className="max-w-md px-2 py-4">
                         {r.reason ? <div>{r.reason}</div> : running && <div className="text-muted">screening…</div>}
                         {flags.length > 0 && (
                           <div className="mt-1 text-xs text-muted">
@@ -189,11 +189,11 @@ export default function Scan({ onDeepDive }: { onDeepDive: (e: Ecosystem, name: 
                           </div>
                         )}
                       </td>
-                      <td className="px-2 py-3 text-right font-mono text-xs">{fmt(r.weeklyDownloads)}</td>
-                      <td className="px-5 py-3 text-right">
+                      <td className="px-2 py-4 text-right font-mono text-sm">{fmt(r.weeklyDownloads)}</td>
+                      <td className="px-6 py-4 text-right">
                         <button
                           onClick={() => onDeepDive(meta.ecosystem, r.name)}
-                          className={`whitespace-nowrap rounded-md border px-3 py-1 text-xs ${risk === "low" ? "border-line text-muted hover:text-text" : "border-accent/50 text-accent hover:bg-accent/10"}`}
+                          className={`whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-medium transition ${risk === "low" ? "text-muted ring-1 ring-white/10 hover:text-text" : "bg-accent text-black hover:brightness-110"}`}
                         >
                           Deep dive
                         </button>
