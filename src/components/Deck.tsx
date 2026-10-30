@@ -19,7 +19,8 @@ function Step({ i, active, children, className = "" }: { i: number; active: bool
   return (
     <div
       className={`deck-step ${active ? "deck-in" : ""} ${className}`}
-      style={{ transitionDelay: active ? `${120 + i * 110}ms` : "0ms" }}
+      // --deck-stagger lets a recording slow the build so items land with the narration.
+      style={{ transitionDelay: active ? `calc(120ms + ${i} * var(--deck-stagger, 110ms))` : "0ms" }}
     >
       {children}
     </div>
@@ -39,7 +40,7 @@ function Shot({ src, alt, w, h, className = "" }: { src: string; alt: string; w:
 type SlideFn = (active: boolean) => React.ReactNode;
 
 const INCIDENTS = [
-  { y: "2018", n: "event-stream", d: "New maintainer ships a wallet stealer to ~2M weekly installs" },
+  { y: "2018", n: "event-stream", d: "New maintainer ships a wallet stealer; millions of installs a week" },
   { y: "2021", n: "ua-parser-js", d: "Hijacked account publishes a cryptominer and password stealer" },
   { y: "2022", n: "colors / faker", d: "The author sabotages their own packages; thousands of apps break" },
   { y: "2024", n: "xz-utils", d: "A two-year social-engineering campaign plants a backdoor" },
@@ -203,7 +204,7 @@ const SLIDES: { id: string; render: SlideFn; notes: string }[] = [
           </Step>
         </div>
         <Step i={2} active={a} className="max-h-[78vh] overflow-hidden rounded-2xl">
-          <Shot src="/pitch/img/verdict.png" alt="Vouch verdict for event-stream: Avoid, high confidence, with cited risks" w={1664} h={3290} />
+          <Shot src="/pitch/img/verdict.png" alt="Vouch verdict for event-stream: Avoid, high confidence, with cited risks" w={1664} h={3506} />
         </Step>
       </div>
     ),
@@ -288,7 +289,7 @@ const SLIDES: { id: string; render: SlideFn; notes: string }[] = [
           </Step>
         </div>
         <Step i={3} active={a} className="justify-self-center">
-          <Shot src="/pitch/img/trace.png" alt="Agent trace panel showing per-call model routing" w={720} h={1396} className="max-h-[78vh] w-[360px]" />
+          <Shot src="/pitch/img/trace.png" alt="Agent trace panel showing per-call model routing" w={720} h={1344} className="max-h-[78vh] w-[360px]" />
         </Step>
       </div>
     ),

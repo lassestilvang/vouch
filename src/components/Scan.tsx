@@ -90,7 +90,7 @@ export default function Scan({ onDeepDive }: { onDeepDive: (e: Ecosystem, name: 
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          rows={8}
+          rows={Math.min(16, Math.max(8, text.split("\n").length))}
           spellCheck={false}
           aria-label="Manifest"
           placeholder="Paste a package.json or requirements.txt (up to 40 dependencies)"
@@ -140,7 +140,7 @@ export default function Scan({ onDeepDive }: { onDeepDive: (e: Ecosystem, name: 
               ))}
             </div>
             <span className="text-xs text-muted">
-              {calls.length > 0 && `Nemotron Nano · ${calls.filter((c) => c.ok).length} screening calls · ${fmt(tokens)} tokens · `}
+              {calls.length > 0 && `Nemotron Nano · ${calls.filter((c) => c.ok).length} screening call${calls.filter((c) => c.ok).length === 1 ? "" : "s"} · ${fmt(tokens)} tokens · `}
               {ms !== null ? `${(ms / 1000).toFixed(1)}s` : running ? "running…" : ""}
             </span>
           </div>

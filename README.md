@@ -89,6 +89,22 @@ bun run dev                  # http://localhost:3000
 
 Deep links work: `/?e=npm&p=event-stream` starts a check on load.
 
+### CLI: vet before you install
+
+`bin/vouch.mjs` wraps `npm install` and `pip install`. It asks Vouch first and only runs the install if the verdict allows it. A nonexistent name (for example a hallucinated `reqeusts`) is blocked before any model runs.
+
+```bash
+node bin/vouch.mjs pip install reqeusts      # blocked, exit 1
+node bin/vouch.mjs npm install event-stream  # full investigation; installs only on Adopt
+node bin/vouch.mjs check npm left-pad        # verdict only, never installs
+```
+
+Flags: `--yes` (also install on Caution), `--dry-run` (never install), `--api URL`. The `VOUCH_API` env var sets the server (default: the hosted demo).
+
+### Demo video
+
+`scripts/record-demo.mjs` records the submission video from the real app against a local production build: Playwright screencast at 1080p, neural TTS narration, and an `.srt` caption file. See the comment at the top of the script.
+
 ### Without credits
 
 ```bash

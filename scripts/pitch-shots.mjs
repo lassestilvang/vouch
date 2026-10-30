@@ -56,7 +56,7 @@ await p.goto(BASE, { waitUntil: "networkidle" });
 await hideHeader();
 await p.getByRole("tab", { name: "Scan a manifest" }).click();
 await p.getByRole("button", { name: "package.json", exact: true }).click();
-await p.getByText(/screening calls/).waitFor({ timeout: 60_000 });
+await p.getByText(/screening calls?/).waitFor({ timeout: 60_000 });
 await p.waitForTimeout(800);
 await p.locator('[data-demo="scan"]').screenshot({ path: `${OUT}/scan.png` });
 

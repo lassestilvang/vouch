@@ -79,18 +79,21 @@ Right-sizing models matters more than using the biggest one everywhere. Nano is 
 
 NVIDIA Nemotron 3 (Nano, Super, Ultra), Nebius Token Factory, Tavily, Next.js, TypeScript, Bun, OSV.dev, deps.dev, OpenSSF Scorecard, GitHub API
 
-## Demo video script (≤ 3:00)
+## Demo video (2:43)
 
-| Time | Show | Say |
-|---|---|---|
-| 0:00–0:20 | Title, then a terminal typing `npm install` | "Every install runs a stranger's code. Attacks hide in maintainer handoffs, typosquats and names AI assistants hallucinate. Vouch checks a package before you install it." |
-| 0:20–1:05 | Vet `event-stream`. Facts land, the trace runs, the verdict comes in | "Hard facts first: OSV advisory, archived repo, eight years without a release. Nemotron Super plans the searches, Tavily runs them, Nemotron Nano triages every source in parallel, and Nemotron Ultra reasons to a cited verdict. Avoid, with the 2018 hijack cited." |
-| 1:05–1:25 | Click a citation, then an alternative | "Every claim links to its source. Alternatives are one click to vet." |
-| 1:25–1:50 | Vet `reqeusts` (PyPI) | "This is what an AI assistant might suggest. It doesn't exist. If someone registers it tomorrow, it's malware. Vouch says so and suggests `requests`." |
-| 1:50–2:00 | Vet `lodahs` | "A typosquat that npm already pulled. Caught by the facts layer, no LLM needed." |
-| 2:00–2:20 | Scan a manifest: the sample package.json | "Or paste a whole package.json. Nano screens every dependency in a few seconds, and the risky ones float to the top. Deep dive sends just those to Ultra." |
-| 2:20–2:35 | Zoom in on the model routing panel | "Here's the routing on Token Factory: five Nano calls, one Super, one Ultra. Most tokens go to the cheapest model." |
-| 2:35–3:00 | README architecture, repo URL | "Open source under MIT, live at vouch-phi-one.vercel.app. Vouch: know what you install." |
+Recorded automatically from the real app and CLI by `scripts/record-demo.mjs`, with live Nemotron calls. Files: `.demo/vouch-demo.mp4` (1080p) and `.demo/vouch-demo.srt` (upload as YouTube captions). The narration text lives in `SEGMENTS` in that script.
+
+Scene order:
+1. Cold open in a terminal. `vouch pip install reqeusts` is blocked in under half a second, before any model runs.
+2. Title, then the problem: the event-stream hijack in 2018 and slopsquatting (1 in 5 suggested names don't exist).
+3. `vouch npm install event-stream`: a live investigation in the CLI, and the install is blocked.
+4. The same run in the web app, replayed at speed with real timings, then the cited verdict and risks.
+5. A full-screen zoom on the model routing panel: Nano, Super, Ultra on Token Factory.
+6. What we learned: `enable_thinking: false` made Nano 3× faster with 5× fewer tokens.
+7. A manifest scan of the sample package.json, then `requests` comes back Adopt.
+8. Close on the deck's final slide with the live URL and repo.
+
+Suggested YouTube title: **Vouch: an AI agent that vets npm and PyPI packages before you install them (Nemotron on Nebius)**
 
 ## Token Factory and NVIDIA feedback (for the feedback field and the $100 feedback prize)
 

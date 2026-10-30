@@ -143,12 +143,14 @@ export type ScanEvent =
 
 /** Events streamed from /api/vet as NDJSON. */
 export type VetEvent =
-  | { type: "stage"; stage: "collect" | "plan" | "search" | "triage" | "verdict"; status: "start" | "done"; note?: string }
+  /** `t`: ms since the run started, set by the server so cached replays report real timings. */
+  | { type: "stage"; stage: "collect" | "plan" | "search" | "triage" | "verdict"; status: "start" | "done"; note?: string; t?: number }
   | { type: "facts"; facts: PackageFacts; signals: Signal[] }
   | { type: "queries"; queries: string[] }
   | { type: "hits"; hits: SearchHit[] }
   | { type: "evidence"; evidence: Evidence[] }
   | { type: "llm"; call: LlmCall }
   | { type: "verdict"; verdict: Verdict }
+  | { type: "cached"; ageMs: number }
   | { type: "error"; message: string }
   | { type: "done"; ms: number };

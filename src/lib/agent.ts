@@ -100,8 +100,12 @@ export function heuristicVerdict(f: PackageFacts, signals: Signal[]): Verdict {
   };
 }
 
-const cache = new Map<string, { at: number; events: VetEvent[] }>();
+// Each cached event keeps its offset from the start of the live run, so a replay shows the
+// pipeline at its real pace instead of everything completing at once.
+const cache = new Map<string, { at: number; events: { e: VetEvent; ms: number }[] }>();
 const CACHE_MS = 6 * 3_600_000;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const REPLAY_MS = 5_000;
 
 /**
  * Run the full due-diligence pipeline, reporting progress through `send`.
@@ -111,14 +115,26 @@ export async function vet(ecosystem: Ecosystem, name: string, send: (e: VetEvent
   const key = `${ecosystem}:${name}`;
   const hit = cache.get(key);
   if (hit && !opts.fresh && Date.now() - hit.at < CACHE_MS) {
-    for (const e of hit.events) send(e);
+    send({ type: "cached", ageMs: Date.now() - hit.at });
+    // Replay in order and at the original rhythm, compressed to at most REPLAY_MS overall.
+    // Stage events carry their original offsets (`t`), so reported timings stay accurate.
+    const total = hit.events.at(-1)?.ms ?? 0;
+    const scale = total > REPLAY_MS ? REPLAY_MS / total : 1;
+    const start = Date.now();
+    for (const { e, ms } of hit.events) {
+      const wait = ms * scale - (Date.now() - start);
+      if (wait > 0) await sleep(wait);
+      send(e);
+    }
     return;
   }
-  const recorded: VetEvent[] = [];
+  const recorded: { e: VetEvent; ms: number }[] = [];
   const t0 = Date.now();
   const emit = (...events: VetEvent[]) => {
     for (const e of events) {
-      recorded.push(e);
+      const ms = Date.now() - t0;
+      if (e.type === "stage") e.t = ms;
+      recorded.push({ e, ms });
       send(e);
     }
   };

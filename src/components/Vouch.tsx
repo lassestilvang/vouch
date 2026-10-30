@@ -6,7 +6,7 @@ import Scan from "./Scan";
 import type { Dimension, Ecosystem, Evidence, LlmCall, PackageFacts, SearchHit, Signal, Verdict, VetEvent } from "@/lib/types";
 
 type StageName = "collect" | "plan" | "search" | "triage" | "verdict";
-type StageState = { status: "idle" | "running" | "done"; note?: string; startedAt?: number; ms?: number };
+type StageState = { status: "idle" | "running" | "done"; note?: string; startedAt?: number; serverClock?: boolean; ms?: number };
 type Tier = LlmCall["tier"] | "data" | "web";
 
 const STAGES: { id: StageName; label: string; who: string; tier: Tier }[] = [
@@ -88,6 +88,8 @@ export default function Vouch() {
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [totalMs, setTotalMs] = useState<number | null>(null);
+  const [cachedAgeMs, setCachedAgeMs] = useState<number | null>(null);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const apply = useCallback((e: VetEvent) => {
@@ -97,10 +99,15 @@ export default function Vouch() {
           const prev = s[e.stage];
           return {
             ...s,
+            // Prefer server offsets: they stay true when a cached run is replayed faster.
             [e.stage]:
               e.status === "start"
-                ? { status: "running", startedAt: Date.now() }
-                : { status: "done", note: e.note, ms: prev.startedAt ? Date.now() - prev.startedAt : undefined },
+                ? { status: "running", startedAt: e.t ?? Date.now(), serverClock: e.t !== undefined }
+                : {
+                    status: "done",
+                    note: e.note,
+                    ms: prev.startedAt === undefined ? undefined : (prev.serverClock ? (e.t ?? 0) : Date.now()) - prev.startedAt,
+                  },
           };
         });
         break;
@@ -125,6 +132,9 @@ export default function Vouch() {
         break;
       case "error":
         setError(e.message);
+        break;
+      case "cached":
+        setCachedAgeMs(e.ageMs);
         break;
       case "done":
         setTotalMs(e.ms);
@@ -153,6 +163,8 @@ export default function Vouch() {
       setVerdict(null);
       setError(null);
       setTotalMs(null);
+      setCachedAgeMs(null);
+      setStartedAt(Date.now());
       const url = new URL(window.location.href);
       url.searchParams.set("e", eco);
       url.searchParams.set("p", n);
@@ -283,7 +295,7 @@ export default function Vouch() {
 
         {mode === "single" && started && (
           <div className="mt-8">
-            <Pipeline stages={stages} calls={calls} totalMs={totalMs} />
+            <Pipeline stages={stages} calls={calls} totalMs={totalMs} running={running} startedAt={startedAt} cachedAgeMs={cachedAgeMs} />
             <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
               <div className="flex min-w-0 flex-col gap-6">
                 <VerdictCard
@@ -520,8 +532,32 @@ function Landing() {
 
 /* ---------- live pipeline ---------- */
 
-function Pipeline({ stages, calls, totalMs }: { stages: Record<StageName, StageState>; calls: LlmCall[]; totalMs: number | null }) {
+function Elapsed({ since }: { since: number }) {
+  const [now, setNow] = useState(since);
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 100);
+    return () => clearInterval(id);
+  }, []);
+  return <span className="font-mono tabular-nums text-text">{(Math.max(0, now - since) / 1000).toFixed(1)}s</span>;
+}
+
+function Pipeline({
+  stages,
+  calls,
+  totalMs,
+  running,
+  startedAt,
+  cachedAgeMs,
+}: {
+  stages: Record<StageName, StageState>;
+  calls: LlmCall[];
+  totalMs: number | null;
+  running: boolean;
+  startedAt: number | null;
+  cachedAgeMs: number | null;
+}) {
   const nano = calls.filter((c) => c.tier === "nano").length;
+  const ago = cachedAgeMs === null ? "" : cachedAgeMs < 60_000 ? "moments ago" : `${Math.round(cachedAgeMs / 60_000)} min ago`;
   return (
     <div data-demo="pipeline" className="glass rise rounded-2xl px-5 py-4">
       <ol className="grid grid-cols-5 gap-2">
@@ -571,11 +607,27 @@ function Pipeline({ stages, calls, totalMs }: { stages: Record<StageName, StageS
           );
         })}
       </ol>
-      {totalMs !== null && (
-        <div className="mt-3 border-t border-white/5 pt-3 text-xs text-muted">
-          Investigation finished in <span className="font-mono text-text">{(totalMs / 1000).toFixed(1)}s</span> · {calls.length} Nemotron calls on Nebius Token Factory
-        </div>
-      )}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3 text-xs text-muted">
+        {totalMs !== null ? (
+          <span>
+            Investigation finished in <span className="font-mono text-text">{(totalMs / 1000).toFixed(1)}s</span> · {calls.length} Nemotron call
+            {calls.length === 1 ? "" : "s"} on Nebius Token Factory
+          </span>
+        ) : running && cachedAgeMs !== null ? (
+          <span className="flex items-center gap-2">
+            <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-accent" />
+            Replaying at speed · stage timings are from the original run
+          </span>
+        ) : running && startedAt !== null ? (
+          <span className="flex items-center gap-2">
+            <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-accent" />
+            Investigating · <Elapsed since={startedAt} /> · {calls.length} Nemotron call{calls.length === 1 ? "" : "s"} so far
+          </span>
+        ) : (
+          <span />
+        )}
+        {cachedAgeMs !== null && <span>Replay of a live run from {ago}</span>}
+      </div>
     </div>
   );
 }
@@ -662,7 +714,9 @@ function VerdictCard({
           <div className="min-w-0 flex-1">
             <div className="text-sm font-medium text-accent">{running ? "Nemotron Ultra is weighing the evidence" : "No verdict"}</div>
             <div className="mt-1 text-sm text-muted">
-              {facts ? `${facts.vulns.length} advisories · ${evidenceCount} relevant web sources · registry and repository signals` : "Collecting facts…"}
+              {facts
+                ? `${facts.vulns.length} advisor${facts.vulns.length === 1 ? "y" : "ies"} · ${evidenceCount ? `${evidenceCount} relevant web sources` : "web sources in triage"} · registry and repository signals`
+                : "Collecting facts…"}
             </div>
             <div className="mt-5 space-y-2.5">
               <div className="skeleton h-4 w-11/12" />
@@ -810,7 +864,8 @@ function FactsCard({ facts, signals }: { facts: PackageFacts; signals: Signal[] 
     ? [
         ["Weekly downloads", fmt(facts.weeklyDownloads)],
         ["Last release", date(facts.lastPublishedAt)],
-        ["Maintainers", facts.maintainers.length || "–"],
+        // PyPI often lists no maintainers in metadata; show downloads-rank style info instead of a dash.
+        facts.maintainers.length ? ["Maintainers", facts.maintainers.length] : ["Latest version", facts.latestVersion ?? "–"],
         ["OpenSSF Scorecard", facts.scorecard ? `${facts.scorecard.score.toFixed(1)}/10` : "–"],
         ["Versions", fmt(facts.versionCount)],
         ["First published", date(facts.createdAt)],
@@ -957,7 +1012,7 @@ function TraceCard({
   const maxTok = Math.max(1, ...byTier.map((t) => t.tokens));
   return (
     <Panel title="Agent trace" right={totalMs !== null && <span className="font-mono text-xs text-muted">{(totalMs / 1000).toFixed(1)}s</span>}>
-      <div className="rounded-2xl bg-black/25 p-4 ring-1 ring-white/5">
+      <div data-demo="routing" className="rounded-2xl bg-black/25 p-4 ring-1 ring-white/5">
         <div className="text-xs text-muted">Model routing on Token Factory</div>
         <div className="mt-3 space-y-3">
           {byTier.map((t) => (
